@@ -1,0 +1,209 @@
+package MacOSX::iTunes::FileFormat;
+
+=head1 NAME
+
+iTunes Music Library File Format
+
+=head1 SYNOPSIS
+
+This file describes the C<iTunes Music Library> file format
+
+=head1 DESCRIPTION
+
+The C<iTunes Music Library> file contains a series of variable length
+blocks.  The first part of the file refers to iTunes in general and
+to the number of playlists the file contains. The middle part holds
+all of the MP3 data, which is only stored once per item.  Each item
+has a unique identifier used later in the file.  The last part of the
+file contains a list of playlists, and within each playlist is a list
+of the item identifiers from the middle of the file.
+
+=head2 Markers
+
+Each block of data begins with a four letter marker which denotes
+the type of block.  Some blocks contain sub-blocks, which means
+you cannot simply read to the next marker.
+
+=over 4
+
+=item hdfm -- file header
+
+=item hdsm -- part header ?
+
+=item htlm -- master items list header ?
+
+=item htim -- master item record
+
+=item hohm -- data sublock, multi-purpose (in htim, hpim blocks)
+
+=item hplm -- playlist list header ?
+
+=item hpim -- start of playlist block
+
+=item hptm -- item indentifier sub-block for hpim
+
+=back
+
+=head2 Block format
+
+=over 4
+
+=item hdfm
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'hdfm'
+      4       4     L = header length
+      8       4     file length ?
+     12       4     ?
+     13       1     N = length of version string ?
+     14       N     version string ?
+     14+N   L-N-17  ?
+
+=item hdsm
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'hdsm'
+      4       4     L = header length
+      8       4     ?
+     12       4     block type ?
+     16      L-16   ?
+
+=item htlm
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'htlm'
+      4       4     L = header length
+      8       4     number of songs
+     12      L-12   ?
+
+=item hplm
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'htlm'
+      4       4     L = header length
+      8       4     number of playlists
+     12      L-12   ?
+
+=item htim
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'htim'
+      4       4     L = header length
+      8       4     R = total record length, including sub-blocks
+     12       4     N = number of hohm sub-blocks
+     16       4     song identifier
+     20       4     block type => (1, ?)
+     24       4     ?
+     28       4     Mac OS file type (e.g. MPG3)
+     32       4     ?
+     36       4     file size, in bytes
+     40       4     playtime?
+     44       4     track number
+     48       4     total number of tracks
+     52      L-52   ?
+     56      R-L    hohm sub blocks
+     
+=item hohm
+
+    Byte   Length  Comment
+    -----------------------
+      0       4     'htim'
+      4       4     L = header length
+      8       4     R = total record length
+     12       4     block type, (1, 2, 3, 4, 5, 6, 0x64)
+     16      12     ?
+     28     R-28    block specific data
+     
+=over 4
+
+The following structure follows the common structure of the 
+hohm block.  Offsets start at 0', which is byte 28 in the record.
+
+=item hohm type 1
+
+    Byte   Length  Comment
+    -----------------------
+      0'      2     ?
+      2       2     n = length of next thingy ?
+      4       n     ?
+      4+n     1     N = volume name length (e.g. hard drive name)
+      5+n     N     volume name
+      5+n+N   1     M = filename length
+      6+n+N   M     filename
+      
+      (let A = n+N+M )
+      
+       6+A    4     Mac OS file type
+      10+A    4     Mac OS creator
+      14+A   20     ?
+      24+A    4     B = directory name length
+      28+A    B     directory name
+      28+A+B  C?    ? gook up to the sequence 0x5a_00_02_00 ?
+      
+      (let A' = A+B+C )
+     
+      28+A'   2     D = length of fully qualified path
+      30+A'   D    path
+      
+=item hohm type 100 (0x64)
+
+    Byte   Length  Comment
+    -----------------------
+      0'     12      ?
+     12       4      N = length of playlist name
+     16       8      ?
+     24       N      playlist name
+     
+=item other hohm types 
+    
+    Byte   Length  Comment
+    -----------------------
+      0'     12      ?
+     12       4      N = length of data
+     16       8      ?
+     24       N      data
+   
+      
+     
+=back
+     
+=item hpim
+
+    Byte   Length  Comment
+    -----------------------
+      0       4      hpim
+      4       4      N = length of data
+      8       4      ?
+     12       4      ?
+     16       4      number of items (hptm) in playlist
+   
+
+=item hptm
+
+=back
+
+=cut
+
+"See why 1984 won't be like 1984";
+
+=head1 TO DO
+
+* everything - the list of things already done is much shorter.
+
+=head1 BUGS
+
+* i've guessed on almost everything in this document, but it seems
+to work.
+
+=head1 AUTHOR
+
+Copyright 2002, brian d foy <bdfoy@cpan.org>
+
+You may redistribute this under the same terms as Perl.
+
+=cut

@@ -1,0 +1,7 @@
+# $Id: Changes,v 1.1.1.1 2002/06/14 06:20:05 comdog Exp $
+Revision history for Perl extension MacOSX::iTunes.
+
+0.01  Mon Jun 10 19:16:12 2002
+	- original version; created by h2xs 1.21 with options
+		-AXn MacOSX::iTunes
+
